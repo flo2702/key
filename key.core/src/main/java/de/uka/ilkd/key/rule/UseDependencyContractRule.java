@@ -433,7 +433,6 @@ public final class UseDependencyContractRule implements BuiltInRule {
         Term pre = null;
         final Term[] subs = focus.subs().toArray(new Term[focus.arity()]);
         int heapExprIndex = 0;
-        boolean useful = false;
         ImmutableList<PosInOccurrence> ifInsts = ImmutableSLList.nil();
         int hc = 0;
         for (LocationVariable heap : heaps) {
@@ -480,16 +479,6 @@ public final class UseDependencyContractRule implements BuiltInRule {
                 } else {
                     disjoint = TB.and(disjoint, ds);
                 }
-                // check if helpful
-                if (!useful && !changedLocs.first.op().equals(locSetLDT.getEmpty())) {
-                    final ImmutableSet<Term> changed =
-                        addEqualDefs(TB.unionToSet(changedLocs.first), goal);
-                    if (!changed.contains(dep)) {
-                        useful = true;
-                    }
-                } else {
-                    useful = true;
-                }
                 if (!atPre) {
                     final Term p =
                         contract.getPre(heap, subStep, selfTerm, paramTerms, atPres, services);
@@ -515,10 +504,6 @@ public final class UseDependencyContractRule implements BuiltInRule {
         final ComplexRuleJustificationBySpec cjust = (ComplexRuleJustificationBySpec) goal.proof()
                 .getInitConfig().getJustifInfo().getJustification(this);
         cjust.add(ruleApp, just);
-
-        if (!useful) {
-            return goal.split(1);
-        }
 
         // prepare cut formula
         final ContractPO po =
